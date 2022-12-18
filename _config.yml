@@ -1,3 +1,4 @@
 title: JsthonDb
 description: Easy to use, fast, productive json database for python
-theme: jekyll-theme-hacker
+logo: logo.png
+theme: jekyll-theme-minimal
