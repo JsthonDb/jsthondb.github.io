@@ -134,7 +134,7 @@ id = db.add({'name': 'Mr. Robot', 'start': 2015}, "1")
 print(id)
 ```
 Output
-```
+```python
 1
 ```
 ### add_many
