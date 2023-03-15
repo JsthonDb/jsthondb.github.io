@@ -9,7 +9,7 @@ layout: default
 0. [How to download](#how-to-download)
 1. [Requirements](#requirements) 
 2. [Example json file](#example-json-file) 
-3. [All methods usage examples](#all-methods-usage-examples)
+3. [All vanila methods usage examples](#all-vanila-methods-usage-examples)
     + [Creating empty JsthonDb](#creating-empty-jsthondb)
     + [create_table](#create_table)
     + [choose_table](#choose_table)
@@ -27,7 +27,10 @@ layout: default
     + [show_table](#show_table)
     + [clear_table](#clear_table)
     + [clear_db](#clear_db)
-4. [Errors](#errors)
+4. [Encryption of incoming data](#encryption-of-incoming-data)
+    + [A little bit about the encryption method](#a-little-bit-about-the-encryption-method)
+    + [How to use](#how-to-use)
+6. [Errors](#errors)
     + [UnknownKeyError](#unknownkeyerror)
     + [FunctionIsNotCallable](#functionisnotcallable)
     + [WrongIdsListWasGiven](#wrongidslistwasgiven)
@@ -35,7 +38,7 @@ layout: default
     + [IdIsAlreadyUsed](#idisalreadyused)
     + [NotUniqueNameOfTable](#notuniquenameoftable)
     + [WrongFileName](#wrongfilename)
-5. [Leave your feedback](#leave-your-feedback)
+7. [Leave your feedback](#leave-your-feedback)
 
 ## How to download
 ```cli
@@ -50,39 +53,31 @@ python setup.py install
 
 ## Example json file
 ```json
-
 {
   "tvshows": {
     "keys": [
-
     ],
     "data": {
-
     }
   },
   "films": {
     "keys": [
-
     ],
     "data": {
-
     }
   }
 }
-
 ```
 
-## All methods usage examples
+## All vanila methods usage examples
 ### Creating empty JsthonDb
 ```python
 from jsthon import JsthonDb
-
 db = JsthonDb('main.json')
 ```
 We created that empty file
 ```json
 {
-
 }
 ```
 ### create_table
@@ -95,18 +90,14 @@ db.create_table('films')
 {
   "tvshows": {
     "keys": [
-
     ],
     "data": {
-
     }
   },
   "films": {
     "keys": [
-
     ],
     "data": {
-
     }
   }
 }
@@ -185,7 +176,6 @@ Example usage
 def func(data):
     if data['start'] > 2010:
         return True
-
 print(db.take_with_function(func))
 ```
 Output
@@ -212,7 +202,6 @@ Example usage
 def func(data):
     if data['name'] == 'Shameless':
         return True
-
 updated_data = db.update_with_function(func, {'name': '$hameless'})
 print(updated_data)
 ```
@@ -238,8 +227,6 @@ Example usage
 def func(data):
     if data['start'] < 2015:
         return True
-
-
 deleted_data = db.delete_with_function(func)
 print(deleted_data)
 ```
@@ -291,18 +278,14 @@ Json file
 {
   "tvshows": {
     "keys": [
-
     ],
     "data": {
-
     }
   },
   "films": {
     "keys": [
-
     ],
     "data": {
-
     }
   }
 }
@@ -316,9 +299,85 @@ db.clear_db()
 Json file
 ```json
 {
-
 }
 ```
+## Encryption of incoming data
+### A little bit about the encryption method
+The Russian algorithm "Kuznechik" (in English "Grasshopper") is used for data encryption 
+"Kuznechik" is a symmetric block cipher algorithm with a block size of 128 bits and a key length of 256 bits that uses an SP-net to generate round-robin keys.
+
+### How to use
+Of course at first create db
+Then do next steps:
+1) via method set_encryption() set True or False (if True all data that will be added to the db will be encrypted)
+2) via method set_encryption_keys() set our password for encryption
+Then we create password and via
+```python
+db = JsthonDb('main.json')
+password = 'themostcommonpassword'
+db.set_encryption(True)
+db.set_encryption_keys(password)
+```
+Then we can use it like that
+```python
+db.create_table('tvshows')
+db.add({'name': 'Breaking Bad', 'start': 2008})
+db.set_encryption(False)
+db.add({'name': 'Mr. Robot', 'start': 2015}, "1")
+db.set_encryption(True)
+db.add_many([{'name': 'Shameless', 'start': 2011}, {'name': 'The Boys', 'start': 2019}])
+db.set_encryption(False)
+db.add_many([{'name': 'Scrubs', 'start': 2001}, {'name': 'How I Met Your Mother', 'start': 2005}], ("0", "2"))
+db.set_encryption(True)
+db.update_by_id("0", {"name": "Truckers"})
+def func(data):
+    if data['name'] == 'How I Met Your Mother':
+        return True
+db.update_with_function(func, {"name": "Supernatural"})
+```
+If you look at the file, you will see...
+```json
+{
+  "tvshows": {
+    "keys": [
+      "name",
+      "start"
+    ],
+    "data": {
+      "0": {
+        "name": "5200BD33940A2E5DA6F9AC4BFA161018",
+        "start": 2001
+      },
+      "1": {
+        "name": "Mr. Robot",
+        "start": 2015
+      },
+      "2": {
+        "name": "82BE2DEFED6FF7AB842F4ED60851D55E",
+        "start": 2005
+      },
+      "306218907006977481101359487876547553273": {
+        "name": "2F38307017CE6C62F735672875323C73",
+        "start": "E613ABA58498B5EF32A53C2CBA731F89"
+      },
+      "190621173027032308389150730153920289573": {
+        "name": "1606E9F55A608F0FD5A0F0119BDBC393",
+        "start": "20237B29E7505750861245D176E85660"
+      },
+      "146433368178620406155127275805084087272": {
+        "name": "4D4C339D0ABDBE6FEBB38EBC269B46E8",
+        "start": "715B36146EEC09E8DB3832FF7AEEA9D6"
+      }
+    }
+  }
+}
+```
+Also, you can decrypt data via method decrypt
+```python
+data = 'some information'
+decrypted_data = db.decrypt(data)
+```
+
 ## Errors
 ### UnknownKeyError
 It's raised when key was unrecognised or missed
