@@ -316,7 +316,12 @@ Then we create password and via
 db = JsthonDb('main.json')
 password = 'themostcommonpassword'
 db.set_encryption(True)
-db.set_encryption_keys(password)
+keys = db.set_encryption_keys(password)
+print(keys)
+```
+Output
+```python
+[list of keys]
 ```
 Then we can use it like that
 ```python
