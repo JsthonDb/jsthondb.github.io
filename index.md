@@ -39,9 +39,7 @@ layout: default
 
 ## How to download
 ```cli
-git clone https://github.com/terribleMOTHMAN/JsthonDb
-cd JsthonDb
-python setup.py install
+pip install jsthon
 ```
 
 ## Requirements 
